@@ -17,7 +17,7 @@
 #include <JPetWriter/JPetWriter.h>
 #include "OPSReconstructor.h"
 #include <JPetOptionsTools/JPetOptionsTools.h>
-#include <JPetOpsEvent/JPetOpsEvent.h>
+#include "JPetOpsEvent.h"
 using namespace jpet_options_tools;
 
 using namespace std;

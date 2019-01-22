@@ -21,6 +21,10 @@ set(ROOT_SCRIPTS
   rootalias.C
   )
 
+set(USER_DATA_CLASSES
+  JPetOpsEvent
+  )
+
 set(projectBinary ${projectName}.x)
 
 project(${projectName} CXX) # using only C++
@@ -33,6 +37,13 @@ set(use_modules_from ../LargeBarrelAnalysis)
 
 include_directories(${Framework_INCLUDE_DIRS})
 add_definitions(${Framework_DEFINITIONS})
+
+generate_root_dictionaries(DICTIONARIES SOURCES ${SOURCES}
+  INCLUDE
+  ${USER_DATA_CLASSES}
+  INCLUDE_DIRS ${Framework_INCLUDE_DIRS}
+  )
+list(APPEND SOURCES ${DICTIONARIES})
 
 add_executable(${projectBinary} ${SOURCES} ${HEADERS})
 target_link_libraries(${projectBinary} JPetFramework)
