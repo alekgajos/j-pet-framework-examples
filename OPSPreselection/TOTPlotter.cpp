@@ -24,6 +24,38 @@ using namespace std;
 
 TOTPlotter::TOTPlotter(const char* name): JPetUserTask(name) {}
 
+JPetHit TOTPlotter::calculateTOT(const JPetHit& hit){
+
+  double tot = 0.;
+
+  for(auto& phys_sig: {hit.getSignalA(), hit.getSignalB()}){
+
+    const JPetRawSignal& raw_sig = phys_sig.getRecoSignal().getRawSignal();
+    for(auto& p: raw_sig.getTimesVsThresholdValue(JPetSigCh::Leading)){
+      // fill multiplicity of particular threshold values at leading edge
+      getStatistics().getHisto1D("thr_mult")->Fill(p.second.first);
+    }
+
+    // calculate single-signal TOT
+    auto leading_points = raw_sig.getTimesVsThresholdNumber(JPetSigCh::Leading);
+    auto trailing_points = raw_sig.getTimesVsThresholdNumber(JPetSigCh::Trailing);
+      
+    for(int i=1;i<5;i++){
+      auto lead_search = leading_points.find(i);
+      auto trail_search = trailing_points.find(i);
+      if (lead_search != leading_points.end()
+          && trail_search != trailing_points.end()){
+        tot += (trail_search->second - lead_search->second) / 1000.; // in ns
+      }
+    }
+    
+  }
+  
+  JPetHit new_hit = hit;
+  new_hit.setEnergy(tot);
+  return new_hit;
+}
+
 bool TOTPlotter::init()
 {
 
@@ -34,14 +66,20 @@ bool TOTPlotter::init()
   for(int i=1; i <= getParamBank().getBarrelSlotsSize(); ++i){
 
     getStatistics().createHistogram(
-				    new TH1F(Form("tot_strip_%d", getParamBank().getBarrelSlot(i).getID()), "TOT uncalibrated; TOT [ns]; counts", 1000., 0., 100.)
+				    new TH1F(Form("tot_strip_%d", getParamBank().getBarrelSlot(i).getID()),
+                                             "TOT uncalibrated; TOT [ns]; counts", 1000., 0., 100.)
 				    );
 
     getStatistics().createHistogram(
-				    new TH1F(Form("edep_strip_%d", getParamBank().getBarrelSlot(i).getID()), "TOT uncalibrated; TOT [ns]; counts", 1000., 0., 1500.)
+				    new TH1F(Form("edep_strip_%d", getParamBank().getBarrelSlot(i).getID()),
+                                             "TOT uncalibrated; TOT [ns]; counts", 1000., 0., 1500.)
 				    );
   }
 
+  getStatistics().createHistogram(new TH1F("thr_mult", "threshold value multiplicity in raw signals",
+                                           100, 0., 500.)
+                                  );
+  
   return true;
 }
 
@@ -54,20 +92,19 @@ bool TOTPlotter::exec()
   for(uint i=0;i<n;++i){
 
     const JPetHit & hit =  dynamic_cast<const JPetHit&>(timeWindow->operator[](i));
-
-    double tot = (hit.getSignalA().getPhe() + hit.getSignalB().getPhe());
+    JPetHit new_hit = calculateTOT(hit);
+    
+    double tot = new_hit.getEnergy();
     double edep = exp((tot*1000.+1.1483e5) / 23144.);
 
-    getStatistics().getHisto1D(Form("tot_strip_%d", hit.getBarrelSlot().getID()))->Fill(tot);
-    getStatistics().getHisto1D(Form("edep_strip_%d", hit.getBarrelSlot().getID()))->Fill(edep);
+    getStatistics().getHisto1D(Form("tot_strip_%d", new_hit.getBarrelSlot().getID()))->Fill(tot);
+    getStatistics().getHisto1D(Form("edep_strip_%d", new_hit.getBarrelSlot().getID()))->Fill(edep);
 
-    fOutputEvents->add<JPetHit>(hit);
+    fOutputEvents->add<JPetHit>(new_hit);
   }
-
 
   return true;
 }
-
 
 bool TOTPlotter::terminate()
 {

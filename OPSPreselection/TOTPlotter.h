@@ -29,12 +29,14 @@ class JPetWriter;
 
 class TOTPlotter : public JPetUserTask{
 public:
-	TOTPlotter(const char * name);
-	virtual ~TOTPlotter(){}
-	virtual bool init() override;
-	virtual bool exec() override;
-	virtual bool terminate() override;
+  TOTPlotter(const char * name);
+  virtual ~TOTPlotter(){}
+  virtual bool init() override;
+  virtual bool exec() override;
+  virtual bool terminate() override;
+
 protected:
-    	std::vector<JPetHit> fHitVector;
+  std::vector<JPetHit> fHitVector;
+  JPetHit calculateTOT(const JPetHit& hit);
 };
 #endif /*  !TOTPLOTTER  */
