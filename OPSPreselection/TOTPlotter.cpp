@@ -66,14 +66,14 @@ bool TOTPlotter::init()
   for(int i=1; i <= getParamBank().getBarrelSlotsSize(); ++i){
 
     getStatistics().createHistogram(
-				    new TH1F(Form("tot_strip_%d", getParamBank().getBarrelSlot(i).getID()),
-                                             "TOT uncalibrated; TOT [ns]; counts", 1000., 0., 100.)
+				    new TH1F(Form("tot_strip_good_%d", getParamBank().getBarrelSlot(i).getID()),
+                                             "TOT for good hits; TOT [ns]; counts", 1000., 0., 100.)
+				    );
+    getStatistics().createHistogram(
+				    new TH1F(Form("tot_strip_corrupted_%d", getParamBank().getBarrelSlot(i).getID()),
+                                             "TOT for corrupted hits; TOT [ns]; counts", 1000., 0., 100.)
 				    );
 
-    getStatistics().createHistogram(
-				    new TH1F(Form("edep_strip_%d", getParamBank().getBarrelSlot(i).getID()),
-                                             "TOT uncalibrated; TOT [ns]; counts", 1000., 0., 1500.)
-				    );
   }
 
   getStatistics().createHistogram(new TH1F("thr_mult", "threshold value multiplicity in raw signals",
@@ -95,10 +95,12 @@ bool TOTPlotter::exec()
     JPetHit new_hit = calculateTOT(hit);
     
     double tot = new_hit.getEnergy();
-    double edep = exp((tot*1000.+1.1483e5) / 23144.);
 
-    getStatistics().getHisto1D(Form("tot_strip_%d", new_hit.getBarrelSlot().getID()))->Fill(tot);
-    getStatistics().getHisto1D(Form("edep_strip_%d", new_hit.getBarrelSlot().getID()))->Fill(edep);
+    if(hit.getRecoFlag() == JPetHit::Good){
+      getStatistics().getHisto1D(Form("tot_strip_good_%d", new_hit.getBarrelSlot().getID()))->Fill(tot);
+    }else{
+      getStatistics().getHisto1D(Form("tot_strip_corrupted_%d", new_hit.getBarrelSlot().getID()))->Fill(tot);
+    }
 
     fOutputEvents->add<JPetHit>(new_hit);
   }
