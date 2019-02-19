@@ -17,18 +17,18 @@
 
 ClassImp(JPetOpsEvent);
 
-JPetOpsEvent::JPetOpsEvent(): JPetEvent()
+JPetOpsEvent::JPetOpsEvent(): JPetEvent(), fHasPrompt(false)
 {
   /**/
 }
 
-JPetOpsEvent::JPetOpsEvent(const JPetEvent& event): JPetEvent(event)
+JPetOpsEvent::JPetOpsEvent(const JPetEvent& event): JPetEvent(event), fHasPrompt(false)
 {
   /**/
 }
 
 JPetOpsEvent::JPetOpsEvent(const std::vector<JPetHit>& hits, JPetEventType eventType, bool orderedByTime):
-  JPetEvent(hits, eventType, orderedByTime)
+  JPetEvent(hits, eventType, orderedByTime), fHasPrompt(false)
 {
 }
 
@@ -62,4 +62,22 @@ void JPetOpsEvent::setAnnihilationTime(double t)
 double JPetOpsEvent::getAnnihilationTime() const
 {
   return fAnnihilationTime;
+}
+
+void JPetOpsEvent::setLifeTime(double life_time)
+{
+  fLifeTime = life_time;
+}
+
+double JPetOpsEvent::getLifeTime() const
+{
+  return fLifeTime;
+}
+
+void JPetOpsEvent::setHasPrompt(bool has_prompt){
+  fHasPrompt = has_prompt;
+}
+
+bool JPetOpsEvent::hasPrompt() const{
+  return fHasPrompt;
 }

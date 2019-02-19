@@ -38,7 +38,11 @@ public:
   void setAnnihilationPoint(double x, double y, double z);
   void setAnnihilationPoint(const TVector3& point);
   void setAnnihilationTime(double t);
-
+  void setLifeTime(double life_time);
+  double getLifeTime() const;
+  void setHasPrompt(bool has_prompt);
+  bool hasPrompt() const;
+  
   const TVector3& getAnnihilationPoint() const;
   double getAnnihilationTime() const;
 
@@ -46,7 +50,9 @@ protected:
 
   TVector3 fAnnihilationPoint;
   double fAnnihilationTime;
-
+  double fLifeTime;
+  bool fHasPrompt;
+  
   ClassDef(JPetOpsEvent, 1);
 };
 #endif /*  !JPETOPSEVENT_H */

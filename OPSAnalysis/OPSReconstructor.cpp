@@ -37,6 +37,9 @@ bool OPSReconstructor::init()
   fReconstructor->setBarrelLength( scin_length );
   fReconstructor->setChamberRadius( 10.0 );
 
+  getStatistics().createHistogram(new TH1F("anh_hits_in_evt", "No. annihilation hits in event", 6, -0.5, 5.5));
+  getStatistics().createHistogram(new TH1F("evt_rej_z", "Was event rejected by Z requirement?", 2, -0.5, 1.5));
+                                  
   // create histograms for annihilation position
   getStatistics().createHistogram(new TH2F("decay point XY",
 					   "transverse position of the o-Ps->3g decay point;"
@@ -97,24 +100,32 @@ bool OPSReconstructor::exec()
 
     for(uint i=0;i<n;++i){
       const JPetEvent & event = timeWindow->getEvent<JPetEvent>(i);
-      
-      // sanity check
-      uint n_hits = event.getHits().size();
-      assert(n_hits == 3 || n_hits == 4 );
 
+      // if not 3gamma event, do not attempt to reconstruct
+      if( !event.isTypeOf(JPetEventType::k3Gamma) ){
+        JPetOpsEvent ops_event(event);
+	fOutputEvents->add<JPetOpsEvent>(ops_event);        
+        continue;
+      }
+      
       // remove deexcitation photon candidate
       auto hits = event.getHits();
       hits.erase(
 		 remove_if(hits.begin(), hits.end(),
 			   [](const JPetHit& hit){
-			     if( hit.getQualityOfEnergy() > 0.5 ){
+			     if( hit.getQualityOfEnergy() > 1.2 || hit.getQualityOfEnergy() < 0.8 ){
 			       return true;
 			     }
 			     return false;
 			   }),
 		 hits.end());
 
-      assert(hits.size() == 3);
+
+      // temporary - skip event if more than 3 annihilation hit candiadtes
+      getStatistics().getHisto1D("anh_hits_in_evt")->Fill(hits.size());
+      if( hits.size() > 3){
+        continue;
+      }
       
       //
       bool z_ok = true;
@@ -128,7 +139,10 @@ bool OPSReconstructor::exec()
       }
 
       // skip events with bad Z of hits
-      if(!z_ok) continue;
+      getStatistics().getHisto1D("evt_rej_z")->Fill(!z_ok);
+      if(!z_ok){
+        continue;
+      }
       
       // setup reconstruction
       fReconstructor->setGamma(0, hits.at(0));

@@ -37,7 +37,7 @@ public:
   virtual bool exec() override;
   virtual bool terminate() override;
 protected:
-  Reconstructor * fReconstructor;
+  Reconstructor * fReconstructor;  
 };
 #endif /*  !OPSRECONSTRUCTOR_H */
 

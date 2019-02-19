@@ -1,5 +1,5 @@
 /**
- *  @copyright Copyright 2016 The J-PET Framework Authors. All rights reserved.
+ *  @copyright Copyright 2019 The J-PET Framework Authors. All rights reserved.
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may find a copy of the License in the LICENCE file.
@@ -34,6 +34,16 @@ bool OPSAnalyzer::init()
 
   fOutputEvents = new JPetTimeWindow("JPetOpsEvent");
 
+  getStatistics().createHistogram(
+				  new TH1F("anh_hits_in_tw",
+					   "Number of annihilation candidate hits in time window", 10, 0.5, 10.5)
+				  );
+
+  getStatistics().createHistogram(
+				  new TH1F("dex_hits_in_tw",
+					   "Number of deexcitation candidate hits time window", 10, 0.5, 10.5)
+				  );
+  
   // create histograms for annihilation position
   getStatistics().createHistogram(new TH2F("decay point XY",
 					   "transverse position of the o-Ps->3g decay point;"
@@ -108,6 +118,9 @@ bool OPSAnalyzer::exec()
 
     uint n = timeWindow->getNumberOfEvents();
 
+    makeOPSEvents(*timeWindow);
+    
+    
     for(uint i=0;i<n;++i){
       const JPetOpsEvent & event = timeWindow->getEvent<JPetOpsEvent>(i);
 
@@ -122,22 +135,7 @@ bool OPSAnalyzer::exec()
       getStatistics().getHisto2D("decay point XZ")->Fill(anh_point.Z(),
 							 anh_point.X());
 
-      // calculate event time
-      if( hits.size() == 4 ){ // only for events with de-excitation
-	double dt = -1000.;
-	for(auto & hit: event.getHits()){
-	  float hit_class = hit.getQualityOfEnergy();
-	  if( hit_class > 0.5 && hit_class < 1.0 ){ // prompt gamma
-	    double r = (anh_point - hit.getPos()).Mag();
-	    const double c = 29.9792458; // cm  / ns
-	    double t_prompt = hit.getTime() - r/c;
-	    dt = event.getAnnihilationTime() - t_prompt;
-	  }
-      
-	}
-      
-	getStatistics().getHisto1D("t_dex_anh")->Fill(dt);
-      }
+
 
       //
       // calculate true event angles
@@ -220,4 +218,48 @@ bool OPSAnalyzer::terminate()
   INFO("Analysis of o-Ps->3g decays done.");
   return true;
 }
+
+std::vector<JPetOpsEvent> OPSAnalyzer::makeOPSEvents(const JPetTimeWindow& time_window){
+
+  vector<JPetOpsEvent> newEventVec;
+
+  int n_events = time_window.getNumberOfEvents();
+
+  int n_prompt = 0;
+  int n_anh = 0;
+  
+  
+  for(int i=0;i<n_events;++i){
+
+    const JPetOpsEvent & event = time_window.getEvent<JPetOpsEvent>(i);
+    
+    if( event.isTypeOf(JPetEventType::kPrompt)){
+      n_prompt++;
+    }
+    if(event.isTypeOf(JPetEventType::k3Gamma)){
+      n_anh++;
+    }
+  }
+
+  getStatistics().getHisto1D("anh_hits_in_tw")->Fill(n_anh);
+  getStatistics().getHisto1D("dex_hits_in_tw")->Fill(n_prompt);
+  
+}
+  
+  
+  /*  
+  for(int entry=0; entry<nevents; ++entry){
+    const JPetEvent& event = dynamic_cast<const JPetEvent&>(events[entry]);
+    
+    const auto & hits = event.getHits();
+    
+    // case 1: dex and annihilation in the same TW
+    if( event.isTypeOf(JPetEventType::kPrompt) && 
+        event.isTypeOf(JPetEventType::k3Gamma) ){
+      
+    }
+  
+    return newEventVec;
+  */
+
 

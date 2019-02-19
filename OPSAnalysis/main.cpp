@@ -15,7 +15,8 @@
 
 #include <JPetManager/JPetManager.h>
 #include "TOTLoader.h"
-#include "OPSFinder.h"
+//#include "OPSFinder.h"
+#include "OPSCandidateFinder.h"
 #include "OPSReconstructor.h"
 #include "OPSAnalyzer.h"
 
@@ -25,13 +26,13 @@ int main(int argc, const char* argv[])
 {
   JPetManager& manager = JPetManager::getManager();
 
-  manager.registerTask<TOTLoader>("TOTLoader");
-  manager.registerTask<OPSFinder>("OPSFinder");
+  //  manager.registerTask<TOTLoader>("TOTLoader");
+  manager.registerTask<OPSCandidateFinder>("OPSCandidateFinder");
   manager.registerTask<OPSReconstructor>("OPSReconstructor");
-  manager.registerTask<OPSAnalyzer>("OPSAnalyzer");
+  //manager.registerTask<OPSAnalyzer>("OPSAnalyzer");
 
   //  manager.useTask("TOTLoader", "pre.evt", "pre.evt.tot");
-  manager.useTask("OPSFinder", "pre.evt", "ops.cand.evt");
+  manager.useTask("OPSCandidateFinder", "pre.evt", "ops.cand.evt");
   manager.useTask("OPSReconstructor", "ops.cand.evt", "ops.rec.evt");
   manager.useTask("OPSAnalyzer", "ops.rec.evt", "ops.ana.evt");
   
