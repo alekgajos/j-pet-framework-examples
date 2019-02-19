@@ -29,7 +29,7 @@ int main(int argc, const char* argv[])
   //  manager.registerTask<TOTLoader>("TOTLoader");
   manager.registerTask<OPSCandidateFinder>("OPSCandidateFinder");
   manager.registerTask<OPSReconstructor>("OPSReconstructor");
-  //manager.registerTask<OPSAnalyzer>("OPSAnalyzer");
+  manager.registerTask<OPSAnalyzer>("OPSAnalyzer");
 
   //  manager.useTask("TOTLoader", "pre.evt", "pre.evt.tot");
   manager.useTask("OPSCandidateFinder", "pre.evt", "ops.cand.evt");
