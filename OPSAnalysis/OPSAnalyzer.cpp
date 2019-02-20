@@ -21,6 +21,7 @@
 #include <JPetOptionsTools/JPetOptionsTools.h>
 #include "JPetOpsEvent.h"
 #include <TMath.h>
+#include <functional>
 using namespace jpet_options_tools;
 
 using namespace std;
@@ -35,17 +36,24 @@ bool OPSAnalyzer::init()
   fOutputEvents = new JPetTimeWindow("JPetOpsEvent");
 
   getStatistics().createHistogram(
-				  new TH1F("anh_hits_in_tw",
-					   "Number of annihilation candidate hits in time window", 10, 0.5, 10.5)
+				  new TH1F("anh_events_in_tw",
+					   "Number of annihilation candidate hits in time window", 10, -0.5, 9.5)
 				  );
 
   getStatistics().createHistogram(
-				  new TH1F("dex_hits_in_tw",
-					   "Number of deexcitation candidate hits time window", 10, 0.5, 10.5)
+				  new TH1F("dex_events_in_tw",
+					   "Number of deexcitation candidate hits time window", 10, -0.5, 9.5)
+				  );
+
+  getStatistics().createHistogram(
+				  new TH2F("dex_vs_anh_events_in_tw",
+					   "Number of deexcitation vs annihilation events"
+					   " in a time window; annihilation; deexcitation",
+					   10, -0.5, 9.5, 10, -0.5, 9.5)
 				  );
   
   // create histograms for annihilation position
-  getStatistics().createHistogram(new TH2F("decay point XY",
+  getStatistics().createHistogram(new TH2F("anh_XY",
 					   "transverse position of the o-Ps->3g decay point;"
 					   "X [cm]; Y [cm]",
 					   100, -50., 50.,
@@ -53,25 +61,27 @@ bool OPSAnalyzer::init()
 					   )
 				  );
 
-  getStatistics().createHistogram(new TH2F("decay point XZ",
+  getStatistics().createHistogram(new TH2F("anh_XY_nocenter",
+					   "transverse position of the o-Ps->3g decay point;"
+					   "X [cm]; Y [cm]",
+					   100, -50., 50.,
+					   100, -50., 50.
+					   )
+				  );
+  
+  getStatistics().createHistogram(new TH2F("anh_XZ",
 					   "position of the o-Ps->3g decay point in XZ;"
 					   "Z [cm]; X [cm]",
 					   100, -50., 50.,
 					   100, -50., 50.
 					   )
 				  );  
-
-  getStatistics().createHistogram(new TH1F("nhits",
-					   "number of hits in a 3g event",
-					   5, -0.5, 4.5
-					   )
-				  );
   
   getStatistics().createHistogram(
 				  new TH1F("t_dex_anh",
 					   "Time between deexcitation and annihilation"
 					   ";#Delta t [ns]",
-					   400, -20.05, 19.95)
+					   20000, 1000, 1000)
 				  );  
 
   // create histogram for true event angles
@@ -113,12 +123,12 @@ bool OPSAnalyzer::init()
 
 bool OPSAnalyzer::exec()
 {
-
+  
   if (auto timeWindow = dynamic_cast<const JPetTimeWindow* const>(fEvent)) {
 
     uint n = timeWindow->getNumberOfEvents();
 
-    makeOPSEvents(*timeWindow);
+    std::vector<JPetOpsEvent> events = makeOPSEvents(*timeWindow);
     
     /*    
     for(uint i=0;i<n;++i){
@@ -227,23 +237,46 @@ std::vector<JPetOpsEvent> OPSAnalyzer::makeOPSEvents(const JPetTimeWindow& time_
 
   int n_prompt = 0;
   int n_anh = 0;
-  
+
+  std::vector<std::reference_wrapper<const JPetHit>> prompt_hits;
+  std::vector<std::reference_wrapper<const JPetOpsEvent>> anh_events;
   
   for(int i=0;i<n_events;++i){
-
     const JPetOpsEvent & event = time_window.getEvent<JPetOpsEvent>(i);
     
     if( event.isTypeOf(JPetEventType::kPrompt)){
+      for(auto & hit: event.getHits()){
+        if( hit.getQualityOfEnergy() > 1.8 && hit.getQualityOfEnergy() < 2.2){
+          prompt_hits.push_back(std::ref(hit));
+        }
+      }
       n_prompt++;
     }
     if(event.isTypeOf(JPetEventType::k3Gamma)){
+      anh_events.push_back(std::ref(event));
       n_anh++;
     }
   }
+  getStatistics().getHisto1D("anh_events_in_tw")->Fill(n_anh);
+  getStatistics().getHisto1D("dex_events_in_tw")->Fill(n_prompt);
+  getStatistics().getHisto2D("dex_vs_anh_events_in_tw")->Fill(n_anh, n_prompt);
 
-  getStatistics().getHisto1D("anh_hits_in_tw")->Fill(n_anh);
-  getStatistics().getHisto1D("dex_hits_in_tw")->Fill(n_prompt);
+  // temporary
+  // only consider time windows with exactly 1 prompt and 1 annihilation
+  if( n_anh==1 && n_prompt==1 && prompt_hits.size()==1 ){
+
+    TVector3 vertex = anh_events.front().get().getAnnihilationPoint();
+    double t_prompt_corr = prompt_hits.front().get().getTime() - 1000.*(prompt_hits.front().get().getPos() - vertex).Mag() / kSpeedOfLight;
+    double dt = anh_events.front().get().getAnnihilationTime() - t_prompt_corr;
+    getStatistics().getHisto1D("t_dex_anh")->Fill(dt/1000.);
+    
+    JPetOpsEvent new_event = anh_events.front().get();
+    new_event.setHasPrompt(true);
+    new_event.setLifeTime(dt);
+    newEventVec.push_back(new_event);
+  }
   
+  return newEventVec;
 }
   
   

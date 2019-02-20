@@ -178,6 +178,19 @@ bool OPSCandidateFinder::init()
   getStatistics().getHisto2D("3_hit_angles_passed")
     ->GetYaxis()->SetTitle("Second smallest angle - Smallest angle [deg]");  
 
+
+  getStatistics().createHistogram(
+                                  new TH1F("refined_events",
+                                           "No. refined events in TW",
+                                           20, -0.5, 19.5
+                                           )
+                                  );
+  getStatistics().createHistogram(
+                                  new TH1F("event_candidates_tw",
+                                           "No. event candidates in TW",
+                                           20, -0.5, 19.5
+                                           )
+                                  );
   
   return true;
 }
@@ -187,12 +200,12 @@ bool OPSCandidateFinder::exec()
 
   if (auto timeWindow = dynamic_cast<const JPetTimeWindow* const>(fEvent)) {
 
-    std::vector<JPetEvent> events = refineEvents(*timeWindow);
-    events = vetoScatterings( findEventCandidates(events) );
-
+    std::vector<JPetEvent> events = findEventCandidates(refineEvents(*timeWindow));
+    getStatistics().getHisto1D("event_candidates_tw")->Fill(events.size());
+    //    events = vetoScatterings( events );
+    
     saveEvents(events);
 
-    fHitVector.clear();
   } else {
     return false;
   }
@@ -248,6 +261,7 @@ std::vector<JPetEvent> OPSCandidateFinder::refineEvents(const JPetTimeWindow& pr
     }
   }
 
+  getStatistics().getHisto1D("refined_events")->Fill(newEventVec.size());
   return newEventVec;
 }
 
@@ -394,12 +408,12 @@ std::vector<JPetEvent> OPSCandidateFinder::vetoScatterings(const std::vector<JPe
   for(auto & event : events){
 
     if(!event.isTypeOf(JPetEventType::k3Gamma)){
-      continue;
+      //      continue;
     }
     
     auto hits = event.getHits();
     std::set<std::vector<JPetHit>::iterator> to_erase;
-    
+    if(hits.size()<3)continue;
     double min_dvt = -10000.;
 
     /**********************************************************************/

@@ -170,7 +170,7 @@ bool OPSReconstructor::exec()
 	
 	JPetOpsEvent ops_event(event);
 	ops_event.setAnnihilationPoint(sol[1]);
-	ops_event.setAnnihilationTime(t[1]);
+	ops_event.setAnnihilationTime(t[1]*1000.); // time resulting from reconstructor is in [ns]
 	
 	fOutputEvents->add<JPetOpsEvent>(ops_event);
 	

@@ -38,7 +38,7 @@ public:
   double calcThetaSum(const std::vector<JPetHit>& hits);
   std::vector<JPetOpsEvent> makeOPSEvents(const JPetTimeWindow& time_window);
 protected:
-  
+  const double kSpeedOfLight = 29.9792458; // cm  / ns
 };
 #endif /*  !OPSANALYZER_H */
 

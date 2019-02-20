@@ -51,7 +51,6 @@ protected:
   
   std::vector<double> fTOTcuts;
 
-  std::vector<JPetHit> fHitVector;
   bool fSaveControlHistos = true;
   void saveEvents(const std::vector<JPetEvent>& event);
   std::vector<JPetEvent> refineEvents(const JPetTimeWindow & preEvents);
