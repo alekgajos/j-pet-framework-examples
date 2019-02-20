@@ -59,47 +59,41 @@ bool OPSCandidateFinder::init()
   /* Multiplicity of particular hits                                      */
   /************************************************************************/
   getStatistics().createHistogram(
-				  new TH1F("hits_per_event", "Number of Hits in event", 20, 0.5, 20.5)
+				  new TH1F("hits_per_event", "Number of Hits in event", 20, -0.5, 19.5)
 				  );
 
   getStatistics().createHistogram(
 				  new TH1F("anh_hits_per_event",
-					   "Number of annihilation candidate hits in Event", 10, 0.5, 10.5)
+					   "Number of annihilation candidate hits in Event", 10, -0.5, 9.5)
 				  );
 
   getStatistics().createHistogram(
 				  new TH1F("dex_hits_per_event",
-					   "Number of deexcitation candidate hits in Event", 10, 0.5, 10.5)
+					   "Number of deexcitation candidate hits in Event", 10, -0.5, 9.5)
 				  );
 
   getStatistics().createHistogram(
 				  new TH1F("other_hits_per_event",
-					   "Number of other hits in Event", 10, 0.5, 10.5)
+					   "Number of other hits in Event", 10, -0.5, 9.5)
 				  );  
 
   getStatistics().createHistogram(
 				  new TH2F("dex_vs_anh_hits_per_event",
 					   "Number of deexcitation vs annihilation candidate"
 					   " hits in an event; annihilation; deexcitation",
-					   10, 0.5, 10.5, 10, 0.5, 10.5)
-				  );
-  getStatistics().createHistogram(
-				  new TH2F("dex_vs_anh_hits_per_event",
-					   "Number of deexcitation vs annihilation candidate"
-					   " hits in an event; annihilation; deexcitation",
-					   10, 0.5, 10.5, 10, 0.5, 10.5)
+					   10, -0.5, 9.5, 10, -0.5, 9.5)
 				  );
   getStatistics().createHistogram(
 				  new TH2F("dex_vs_other_hits_per_event",
 					   "Number of deexcitation vs other"
 					   " hits in an event; other; deexcitation",
-					   10, 0.5, 10.5, 10, 0.5, 10.5)
+					   10, -0.5, 9.5, 10, -0.5, 9.5)
 				  );
   getStatistics().createHistogram(
                                   new TH2F("anh_vs_other_hits_per_event",
                                            "Number of annihilation vs other"
                                            " hits in an event; other; annihilation",
-					   10, 0.5, 10.5, 10, 0.5, 10.5)
+					   10, -0.5, 9.5, 10, -0.5, 9.5)
 				  );
 
   /************************************************************************/
