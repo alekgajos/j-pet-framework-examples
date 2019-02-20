@@ -120,7 +120,7 @@ bool OPSAnalyzer::exec()
 
     makeOPSEvents(*timeWindow);
     
-    
+    /*    
     for(uint i=0;i<n;++i){
       const JPetOpsEvent & event = timeWindow->getEvent<JPetOpsEvent>(i);
 
@@ -183,7 +183,7 @@ bool OPSAnalyzer::exec()
       }
       
     } // end loop over o-Ps events in a time window
-      
+*/      
   } else {
     return false;
   }
