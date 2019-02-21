@@ -48,6 +48,7 @@ protected:
 
   const std::string fAngleSumCutKey = "OPSFinder_angles_sum_cut_float";
   float fAngleSumCut;
+  bool fTimeWindowHadAnnihilation = false;
   
   std::vector<double> fTOTcuts;
 

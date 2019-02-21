@@ -200,11 +200,17 @@ bool OPSCandidateFinder::exec()
 
   if (auto timeWindow = dynamic_cast<const JPetTimeWindow* const>(fEvent)) {
 
+    fTimeWindowHadAnnihilation = false;
     std::vector<JPetEvent> events = findEventCandidates(refineEvents(*timeWindow));
     getStatistics().getHisto1D("event_candidates_tw")->Fill(events.size());
     //    events = vetoScatterings( events );
-    
-    saveEvents(events);
+
+    // only save anything from a time window
+    // if at least one 3g event was identified there
+    // otherwise, leave an empty time window
+    if(fTimeWindowHadAnnihilation){ 
+      saveEvents(events);
+    }
 
   } else {
     return false;
@@ -305,6 +311,7 @@ std::vector<JPetEvent> OPSCandidateFinder::findEventCandidates(const std::vector
     // set event type flags
     if( n_anh_hits >= 3 ){
       new_event.setEventType(JPetEventType::k3Gamma);
+      fTimeWindowHadAnnihilation = true; // used to decide whether to storea anything from the time window or not
     }
     
     if( n_prompt_hits >= 1 ){
