@@ -81,7 +81,7 @@ bool OPSAnalyzer::init()
 				  new TH1F("t_dex_anh",
 					   "Time between deexcitation and annihilation"
 					   ";#Delta t [ns]",
-					   20000, 1000, 1000)
+					   20000, -1000., 1000.)
 				  );  
 
   // create histogram for true event angles
