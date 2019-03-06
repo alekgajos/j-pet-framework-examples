@@ -47,6 +47,7 @@ public:
   virtual bool terminate() override;
 
 protected:
+  void fillHistos(const JPetTimeWindow & hits);
   std::vector<JPetEvent> buildEvents(const JPetTimeWindow & hits);
   void saveEvents(const std::vector<JPetEvent>& event);
   void initialiseHistograms();

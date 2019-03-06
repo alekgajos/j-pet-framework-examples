@@ -17,6 +17,7 @@ using namespace std;
 
 #include <JPetOptionsTools/JPetOptionsTools.h>
 #include <JPetWriter/JPetWriter.h>
+#include <JPetGeomMapping/JPetGeomMapping.h>
 #include "EventFinder.h"
 #include <iostream>
 
@@ -67,6 +68,24 @@ bool EventFinder::init()
     fSaveControlHistos = getOptionAsBool(fParams.getOptions(), kSaveControlHistosParamKey);
   }
 
+  // temporary histograms of AB time distributions per scint
+  for(auto& slot : getParamBank().getBarrelSlots()){
+
+    getStatistics().createHistogram(new TH1F(Form("dt_AB_good_strip_%d", slot.first),
+					     Form("dt(AB), good hits, strip %d", slot.first),
+					     200, -15., 15.
+					     )
+				    );
+    getStatistics().createHistogram(new TH1F(Form("dt_AB_corr_strip_%d", slot.first),
+					     Form("dt(AB), corrupted hits, strip %d", slot.first),
+					     200, -15., 15.
+					     )
+				    );
+    
+
+  }
+
+  
   // Initialize histograms
   if (fSaveControlHistos) { initialiseHistograms(); }
   return true;
@@ -75,6 +94,7 @@ bool EventFinder::init()
 bool EventFinder::exec()
 {
   if (auto timeWindow = dynamic_cast<const JPetTimeWindow* const>(fEvent)) {
+    fillHistos(*timeWindow);
     saveEvents(buildEvents(*timeWindow));
   } else { return false; }
   return true;
@@ -172,4 +192,22 @@ void EventFinder::initialiseHistograms(){
   getStatistics().getHisto1D("good_vs_bad_events")->GetXaxis()->SetBinLabel(2,"CORRUPTED");
   getStatistics().getHisto1D("good_vs_bad_events")->GetXaxis()->SetBinLabel(3,"UNKNOWN");
   getStatistics().getHisto1D("good_vs_bad_events")->GetYaxis()->SetTitle("Number of Events");
+}
+
+void EventFinder::fillHistos(const JPetTimeWindow & tw){
+
+  const unsigned int nHits = tw.getNumberOfEvents();  
+
+  for(int i=0;i<nHits;++i){
+    auto hit = dynamic_cast<const JPetHit&>(tw[i]);
+
+    double dt = hit.getTimeDiff() / 1000.;
+    if(hit.getRecoFlag() == JPetHit::Good){
+      getStatistics().getHisto1D(Form("dt_AB_good_strip_%d", hit.getBarrelSlot().getID()))->Fill(dt);
+    }else{
+      getStatistics().getHisto1D(Form("dt_AB_corr_strip_%d", hit.getBarrelSlot().getID()))->Fill(dt);
+    }
+    
+  }
+  
 }
