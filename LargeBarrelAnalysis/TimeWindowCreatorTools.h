@@ -42,6 +42,11 @@ public:
   static void flagSigChs(
     std::vector<JPetSigCh>& inputSigChs, JPetStatistics& stats, bool saveHistos
   );
+
+  static void reflagSigChs(
+    std::vector<JPetSigCh>& inputSigChs, JPetStatistics& stats, bool saveHistos
+  );
+  
   static JPetSigCh generateSigCh(
     double tdcChannelTime, const JPetTOMBChannel& channel,
     std::map<unsigned int, std::vector<double>>& timeCalibrationMap,

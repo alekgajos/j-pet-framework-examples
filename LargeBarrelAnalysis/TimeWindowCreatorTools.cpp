@@ -15,6 +15,7 @@
 
 #include "TimeWindowCreatorTools.h"
 #include "UniversalFileLoader.h"
+#include <vector>
 
 using namespace std;
 
@@ -158,4 +159,41 @@ JPetSigCh TimeWindowCreatorTools::generateSigCh(
     );
   }
   return sigCh;
+}
+
+
+void TimeWindowCreatorTools::reflagSigChs(
+					  vector<JPetSigCh>& inputSigChs, JPetStatistics& stats, bool saveHistos
+					  ) {
+
+  // remove SigCh-s already marked as corrupted by the new LLT filtering
+  std::remove_if(inputSigChs.begin(), inputSigChs.end(),
+		 [](JPetSigCh& sc){
+		   return sc.getRecoFlag() == JPetSigCh::Corrupted;
+		 }
+		 );
+
+  // go over sigchs
+  bool first_lead_found = false;
+  for(unsigned int i=0; i<inputSigChs.size(); i++) {
+
+    auto& sc = inputSigChs.at(i);
+
+    sc.setRecoFlag( JPetSigCh::Corrupted );
+    
+    if( sc.getType() == JPetSigCh::Leading ){
+      if(!first_lead_found){
+	first_lead_found = true;
+	sc.setRecoFlag( JPetSigCh::Good );
+      }
+    }
+
+    if( sc.getType() == JPetSigCh::Trailing ){
+      if( first_lead_found ){
+	sc.setRecoFlag( JPetSigCh::Good );
+      }
+    }
+    
+  }
+  
 }

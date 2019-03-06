@@ -161,6 +161,8 @@ bool TimeWindowCreator::exec()
       // Flag with Good or Corrupted
       TimeWindowCreatorTools::flagSigChs(allSigChs, getStatistics(), fSaveControlHistos);
 
+      TimeWindowCreatorTools::reflagSigChs(allSigChs, getStatistics(), fSaveControlHistos);
+      
       // Save result
       saveSigChs(allSigChs);
     }
