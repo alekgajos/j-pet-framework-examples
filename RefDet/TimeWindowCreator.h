@@ -29,6 +29,31 @@ class JPetWriter;
 #define override
 #endif
 
+struct Signal{
+
+  Signal(){
+    for(int i=0;i<2;++i){
+      for(int j=0;j<4;++j){
+        leads[i][j] = -999999.;
+        trails[i][j] = -999999.;
+      }
+    }
+    n_thresholds = 0;
+    n_tots = 0;
+    tot = 0.;
+  }
+  
+  double leads[2][4];
+  double trails[2][4];
+  double tot;
+  
+  double t_earliest;
+  double t_mean;
+
+  int n_thresholds;
+  int n_tots;
+};
+
 /**
  * @brief User Task: translate Unpacker EventIII data to JPetTimeWindow
  *
@@ -53,6 +78,7 @@ protected:
 	void fillChannelHistos(
 	  const JPetChannel& channel, JPetSigCh::EdgeType edge
 	);
+  void applyTimeCalibration(std::vector<double>& times, int side, int scin, int pm, int thr);
 	const std::string kSaveControlHistosParamKey = "Save_Control_Histograms_bool";
 	const std::string kMaxTimeParamKey = "TimeWindowCreator_MaxTime_float";
 	const std::string kMinTimeParamKey = "TimeWindowCreator_MinTime_float";
@@ -75,6 +101,10 @@ protected:
   std::map<int,
 	   std::map<JPetPM::Side,
 		    std::map<int,double>>> fTOTmedianCuts;
+
+  // for time calibration
+  std::map<std::pair<int,int>, std::array<double, 4>> fTimeOffsets;
+  std::map<std::pair<int,int>, int> fEarliestPM;
   
 };
 
