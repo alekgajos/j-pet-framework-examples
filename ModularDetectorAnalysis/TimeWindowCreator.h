@@ -71,7 +71,8 @@ protected:
 			     std::map<int,
 				      std::map<JPetSigCh::EdgeType,
 					       std::vector<float>> > > > > times;
-
+  
+  std::map<std::pair<int,int>, std::array<double, 4>> fTimeOffsets;
 
 };
 

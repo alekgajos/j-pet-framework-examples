@@ -167,6 +167,20 @@ bool TimeWindowCreator::init()
       }
     }
   }
+
+  /************************************************************************/
+  /* Read calibration of inter-PM time offsets                            */
+  /************************************************************************/
+  ifstream f("/home/alek/FTAB/new_firmware/configs/time_calibration.txt", ios::in);
+
+  int side, scin, pm;
+  double offset;
+  while(!f.eof()){
+    f >> side >> scin >> pm >> offset;
+    fTimeOffsets[{side-1,scin}][pm-1] = offset;
+  }
+
+  f.close();
   
   // Control histograms
   if (fSaveControlHistos) { initialiseHistograms(); }
@@ -724,4 +738,16 @@ void TimeWindowCreator::initialiseHistograms(){
   );
   getStatistics().getHisto1D("slot_occ_trails")->GetXaxis()->SetTitle("SLOT ID");
   getStatistics().getHisto1D("slot_occ_trails")->GetYaxis()->SetTitle("Number of Trailing SigCh");
+}
+
+void TimeWindowCreator::applyTimeCalibration(std::vector<double>& times, int side, int scin, int pm, int thr){
+
+  double offset = fTimeOffsets[{side,scin}][pm-1];
+
+  for(int k=0; k<times.size();++k){
+    times[k] += offset;
+  }
+
+  std::sort(times.begin(), times.end());
+  
 }

@@ -69,13 +69,13 @@ bool TimeWindowCreator::init()
   /************************************************************************/
   /* Read calibration of inter-PM time offsets                            */
   /************************************************************************/
-  ifstream f("time_calibration.txt", ios::in);
+  ifstream f("/home/alek/FTAB/new_firmware/configs/time_calibration.txt", ios::in);
 
   int side, scin, pm;
   double offset;
   while(!f.eof()){
     f >> side >> scin >> pm >> offset;
-    fTimeOffsets[{side,scin}][pm-1] = offset;
+    fTimeOffsets[{side-1,scin}][pm-1] = offset;
   }
 
   f.close();
@@ -272,11 +272,11 @@ bool TimeWindowCreator::exec()
 
         for(int pm = 1; pm <= 4; ++pm){
          
-	  times thr_a_leads = all_sigchs[side][scin][pm][1][0]; 
-	  times thr_b_leads = all_sigchs[side][scin][pm][2][0]; 
+	  times& thr_a_leads = all_sigchs[side][scin][pm][1][0]; 
+	  times& thr_b_leads = all_sigchs[side][scin][pm][2][0]; 
 
-	  times thr_a_trails = all_sigchs[side][scin][pm][1][1]; 
-	  times thr_b_trails = all_sigchs[side][scin][pm][2][1]; 
+	  times& thr_a_trails = all_sigchs[side][scin][pm][1][1]; 
+	  times& thr_b_trails = all_sigchs[side][scin][pm][2][1]; 
 
           /**********************************************************************/
           /* Correct hit times for inter-PM offsets                             */
@@ -304,8 +304,10 @@ bool TimeWindowCreator::exec()
 
             double t2 = all_sigchs[side][scin][pm2][1][0].front();
 
-            getStatistics().getHisto1D("inter_pm_tdiffs")->Fill(t1-t2);
-            
+            if (scin == 13) {
+              getStatistics().getHisto1D("inter_pm_tdiffs")->Fill(t1 - t2);
+            }
+
             if( fabs(t1 -t2) < 5.0 ){
 
               // we have a new signal candidate or add to an exisiting one
@@ -631,7 +633,7 @@ void TimeWindowCreator::initialiseHistograms(){
 
 void TimeWindowCreator::applyTimeCalibration(std::vector<double>& times, int side, int scin, int pm, int thr){
 
-  double offset = fTimeOffsets[{side,scin}][pm];
+  double offset = fTimeOffsets[{side,scin}][pm-1];
 
   for(int k=0; k<times.size();++k){
     times[k] += offset;
